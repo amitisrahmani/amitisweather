@@ -15,7 +15,7 @@ def get_weather_data(city_name):
     return None
 
 def home(request):
-    # Fetching weather data for cities in the database
+
     cities = City.objects.all()
     user_weather = []
 
@@ -29,7 +29,7 @@ def home(request):
                 "icon": data.get("weather", [{}])[0].get("icon", "")
             })
 
-    # Fetching Guildford weather
+
     guildford_weather_data = get_weather_data("Guildford")
     if guildford_weather_data:
         guildford_weather = {

@@ -5,95 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App</title>
+    
+    <!-- Bulma CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-    <script>
-    function getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]').value;
-    }
-
-    function deleteCity(cityName) {
-        fetch(`/delete_city/${cityName}/`, { 
-            method: "DELETE",
-            headers: { 
-                "X-CSRFToken": getCSRFToken(),
-                "Content-Type": "application/json"
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, "is-success");
-                document.getElementById(`city-card-${cityName}`).remove();
-            } else {
-                showNotification("Error deleting city", "is-danger");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            showNotification("An unexpected error occurred", "is-danger");
-        });
-    }
-
-    function showNotification(message, type) {
-        const notificationBanner = document.getElementById("notification-banner");
-        const notification = document.createElement("div");
-        notification.className = `notification ${type} has-text-white`;
-        notification.innerHTML = `
-            <button class="delete" onclick="this.parentElement.remove();"></button>
-            ${message}
-        `;
-        notificationBanner.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".notification .delete").forEach(button => {
-            button.addEventListener("click", function () {
-                this.parentElement.remove();
-            });
-        });
-    });
-    </script>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
-        }
-
-        .header {
-            background-color: #00C4A7;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            position: relative;
-        }
-
-        .logo {
-            position: absolute;
-            left: 20px;
-            top: 10px;
-            height: 50px;
-        }
-
-        .weather-banner {
-            background-color: #3B82F6;
-            color: white;
-            padding: 10px;
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-
-        .weather-banner marquee {
-            font-weight: bold;
+            background-color: #f8f8f8;
         }
 
         .search-section {
-            background: url("{% static 'images/metofficegov.jpg' %}") no-repeat center center;
+            background: url("{% static 'images/metofficegov.jpeg' %}") no-repeat center center;
             background-size: cover;
             padding: 40px 0;
             display: flex;
@@ -106,64 +29,149 @@
             padding: 10px;
             border-radius: 8px;
         }
+
+        .card {
+            max-width: 300px;
+            margin: 1rem auto;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            float: right;
+            cursor: pointer;
+        }
     </style>
+
+    <script>
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        function deleteCity(cityName) {
+            fetch(`/delete_city/${cityName}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, "is-success");
+                    document.getElementById(`city-card-${cityName}`).remove();
+                } else {
+                    showNotification("Error deleting city", "is-danger");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                showNotification("An unexpected error occurred", "is-danger");
+            });
+        }
+
+        function showNotification(message, type) {
+            const notificationBanner = document.getElementById("notification-banner");
+            const notification = document.createElement("div");
+            notification.className = `notification ${type} has-text-white`;
+            notification.innerHTML = `
+                <button class="delete" onclick="this.parentElement.remove();"></button>
+                ${message}
+            `;
+            notificationBanner.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".notification .delete").forEach(button => {
+                button.addEventListener("click", function () {
+                    this.parentElement.remove();
+                });
+            });
+        });
+    </script>
 </head>
 <body>
 
-<!-- Header -->
-<header class="header">
-    <img src="{% static 'images/logo.png' %} alt= "logo" class="logo">
-    My Weather Report (Unknown User)
-</header>
+    <!-- Surrey Logo Bar -->
+    <section style="background-color: #003366; padding: 0.75rem;">
+        <div class="container">
+            <img src="{% static 'images/logo.png' %}" alt="University of Surrey Logo" style="height: 50px;" />
+        </div>
+    </section>
 
-<!-- Scrolling Marquee Weather Banner -->
-<section class="weather-banner">
-    <marquee behavior="scroll" direction="left">
-        Guildford Now: {{ guildford_weather.temperature|default:"N/A" }}°C {{ guildford_weather.description|default:"No data" }};
-    </marquee>
-</section>
+    <!-- App Title Bar -->
+    <section style="background-color: #00C4A7; padding: 1rem;">
+        <h1 class="title has-text-white has-text-centered">My Weather Report ({{ user.username|default:"Unknown User" }})</h1>
+    </section>
 
-<!-- Search Bar -->
-<section class="search-section">
-    <div class="search-container">
-        <form method="POST" action="{% url 'add_city' %}" class="field has-addons">
-            {% csrf_token %}
-            <div class="control">
-                <input type="text" name="city_name" class="input" placeholder="City Name" required>
-            </div>
-            <div class="control">
-                <button type="submit" class="button is-info">Add City</button>
-            </div>
-        </form>
-    </div>
-</section>
+    <!-- Scrolling Banner -->
+    <section class="weather-banner" style="background-color: #3B82F6; color: white; padding: 10px;">
+        <marquee behavior="scroll" direction="left">
+            Guildford Now: {{ guildford_weather.temperature|default:"N/A" }}°C {{ guildford_weather.description|default:"No data" }};
+        </marquee>
+    </section>
 
-<!-- Notification Banner -->
-<section id="notification-banner" class="notification-banner">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="notification is-{{ message.tags }} has-text-white">
-                <button class="delete"></button>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-</section>
+    <!-- Search Bar -->
+    <section class="search-section">
+        <div class="search-container">
+            <form method="POST" action="{% url 'add_city' %}" class="field has-addons">
+                {% csrf_token %}
+                <div class="control">
+                    <input type="text" name="city_name" class="input" placeholder="Enter a city..." required>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-info">Add City</button>
+                </div>
+            </form>
+        </div>
+    </section>
 
-<!-- Weather Cards -->
-<section class="weather-cards">
-    {% for weather in user_weather %}
-        <div class="card" id="city-card-{{ weather.city }}">
-            <div class="card-content has-text-centered">
-                <button class="delete-btn" onclick="deleteCity('{{ weather.city }}')">✖</button>
-                <p class="title">{{ weather.city }}</p>
-                <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="{{ weather.city }} weather icon">
-                <p>{{ weather.temperature }}°C</p>
-                <p>{{ weather.description }}</p>
+    <!-- Notifications -->
+    <section id="notification-banner" class="section">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="notification is-{{ message.tags }} has-text-white">
+                    <button class="delete"></button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </section>
+
+    <!-- Weather Cards -->
+    <section class="section">
+        <div class="container">
+            <div class="columns is-multiline is-centered">
+                {% for weather in user_weather %}
+                <div class="column is-one-third">
+                    <div class="card" id="city-card-{{ weather.city }}">
+                        <div class="card-content has-text-centered">
+                            <button class="delete-btn" onclick="deleteCity('{{ weather.city }}')">✖</button>
+                            <p class="title">{{ weather.city }}</p>
+                            <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@2x.png" alt="{{ weather.city }} weather icon">
+                            <p>{{ weather.temperature }}°C</p>
+                            <p>{{ weather.description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-    {% endfor %}
-</section>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer has-background-white py-4">
+        <div class="content is-flex is-justify-content-space-between is-align-items-center px-6">
+            <span>Styled by <a href="https://bulma.io" target="_blank">Bulma</a></span>
+            <span>&copy; 2025 Amitis Rahmani</span> 
+        </div>
+    </footer>
 
 </body>
 </html>
